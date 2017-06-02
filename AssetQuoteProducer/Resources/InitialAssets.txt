@@ -1,0 +1,9 @@
+﻿//Creating a base of assets that will start from theses parameters
+//Asset : Name of the asset
+//Initial_Price : Initial Price of the asset
+//Price_Volatility : Maximum percentage of change on every liquidity event
+//Liquidity_Index : average frequency of trade in a second. An index of 1 is expected to run every 1 sec.
+//Asset   Initial_Price   Price_Volatility    Liquidity_Index
+GOLD;100.2;1%;1
+SILV;50.4;3%;5
+IRON;10.8;2%;20
