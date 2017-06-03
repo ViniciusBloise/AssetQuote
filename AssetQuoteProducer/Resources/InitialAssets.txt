@@ -6,4 +6,4 @@
 //Asset   Initial_Price   Price_Volatility    Liquidity_Index
 GOLD;100.2;1%;1
 SILV;50.4;3%;5
-IRON;10.8;2%;20
+IRON;10.8;10%;9

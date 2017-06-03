@@ -10,7 +10,8 @@ namespace AssetQuoteProducer
     public class AssetQuoteProducer
     {
         private IDictionary<string, Asset> _listOfAssets;
-        private IDictionary<string, Task> _listOfTasks;
+        private IDictionary<string, Thread> _listOfTasks;
+        private bool _finish = false;
 
         private const string INITIAL_ASSETS_FILE = @"./Resources/InitialAssets.txt";
 
@@ -67,38 +68,80 @@ namespace AssetQuoteProducer
             }
         }
 
+  
         /// <summary>
         /// Publishes the assets. Create a list of threads for every asset and
         /// update their values according to volatility and liquidity parameters
+        /// To call this method you must first call InitialiseAssets
         /// </summary>
-        public void PublishAssets()
+        public void PublishAllAssets()
         {
             //See if there's a list of assets
-            if(_listOfAssets != null || _listOfTasks.Count > 0)
+            if (_listOfAssets != null)
             {
+                _listOfTasks = new Dictionary<string, Thread>();
+
                 foreach (var kpv in _listOfAssets)
                 {
-                    Task t = new Task(() =>
+                    var t = new Thread(() =>
                     {
-                        var asset = kpv.Value;
+                        do
+                        {
+                            var asset = kpv.Value;
 
-                        Random rnd = new Random();
-                        //Generate a range between -1.0 and 1.0;
-                        double variation = (rnd.NextDouble() - 0.5) * 2.0;
-                        //Calculate Asset new Price
-                        double newPrice = asset.Price + asset.Volatility * variation;
+                            Random rnd = new Random();
+                            //Generate a range between -1.0 and 1.0;
+                            double variation = (rnd.NextDouble() - 0.5) * 2.0;
+                            //Calculate Asset new Price
+                            double newPrice = asset.Price + asset.Volatility * variation;
 
-                        //Here is the critical zone. Send the new price to the listeners
+                            asset.Price = newPrice;
+                            asset.TransactionDate = DateTime.Now;
 
+                            var quote = new QuoteTick() { Asset = asset.Name, Price = asset.Price, TransactionDate = asset.TransactionDate };
 
-                        //Generate a random time between 0 and 2 x avg transactions per sec (liquidity)
-                        int nextTrade = (int) Math.Round(rnd.NextDouble() * 2 * 1000.0 / asset.Liquitidy);
+                            //Here is the critical zone. Send the new price to the listeners
+                            Publish<QuoteTick>(quote);
 
-                        //Sleep until another
-                        Thread.Sleep(nextTrade);
+                            //Generate a random time between 0 and 2 x avg transactions per sec (liquidity)
+                            int nextTrade = (int)Math.Round(rnd.NextDouble() * 2 * 1000.0 / asset.Liquitidy);
+
+                            //Sleep until another
+                            Thread.Sleep(nextTrade);
+                        } while (!_finish);
+
                     });
+                    _listOfTasks.Add(kpv.Key, t);
                 }
+
+                //Parallel.ForEach(_listOfTasks, (KeyValuePair<string, Task> obj) => obj.Value.Start());
+                //foreach (var t in _listOfTasks) t.Value.Start();
             }
+        }
+
+        public void EndPublishing()
+        {
+            this._finish = true;
+        }
+
+        public void RunTasks()
+        {
+            Parallel.ForEach(_listOfTasks, (KeyValuePair<string, Thread> obj) => obj.Value.Start());
+        }
+
+        public void InitialisePublisher()
+        {
+            
+        }
+
+        public void Publish<Q>(Q item)
+        {
+            Console.WriteLine(item.ToString());
+        }
+
+        public void PublishAsset(Asset asset)
+        {
+            Console.WriteLine(asset.ToString());
         }
     }
 }

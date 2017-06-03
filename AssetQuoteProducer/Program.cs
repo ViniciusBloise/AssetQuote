@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace AssetQuoteProducer
 {
@@ -8,20 +9,17 @@ namespace AssetQuoteProducer
         {
             Console.WriteLine("Hello World!");
 
-            var a = new QuoteTick()
-            {
-                Asset = "GOLD",
-                Price = 122.4,
-                TransactionDate = DateTime.Now
-            };
-
-            Console.WriteLine(a.ToString());
-
-            var serial = a.ToString();
-            var qt = new QuoteTick().FromString(serial);
+            Console.WriteLine("Starting...");
 
             var aqp = new AssetQuoteProducer();
             aqp.InitialiseAssets();
+            aqp.PublishAllAssets();
+
+            aqp.RunTasks();
+            //aqp.RunTasks();
+            Thread.Sleep(5000);
+            aqp.EndPublishing();
+            Thread.Sleep(5000);
         }
     }
 }
