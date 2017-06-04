@@ -11,4 +11,8 @@
   <ItemGroup>
     <Compile Remove="Resources\InitialAssets.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Quote\Quote.csproj" />
+    <ProjectReference Include="..\QuoteSender\QuoteSender.csproj" />
+  </ItemGroup>
 </Project>

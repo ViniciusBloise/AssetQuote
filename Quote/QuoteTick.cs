@@ -1,8 +1,8 @@
-﻿using System;
+﻿﻿using System;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace AssetQuoteProducer
+namespace Quote
 {
     public class QuoteTick
     {

@@ -12,6 +12,7 @@ namespace AssetQuoteProducer
             Console.WriteLine("Starting...");
 
             var aqp = new AssetQuoteProducer();
+            aqp.ExchangeName = "CME";
             aqp.InitialiseAssets();
             aqp.PublishAllAssets();
 

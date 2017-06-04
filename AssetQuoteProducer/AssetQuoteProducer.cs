@@ -5,20 +5,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
+using Quote;
+using QuoteSender;
+
 namespace AssetQuoteProducer
 {
     public class AssetQuoteProducer
     {
         private IDictionary<string, Asset> _listOfAssets;
         private IDictionary<string, Thread> _listOfTasks;
-        private bool _finish = false;
+        private volatile bool _finish = false;
+        private string _exchangeName;
+        public string ExchangeName
+        {
+            get
+            {
+                return _exchangeName;
+            }
+
+            set
+            {
+                _exchangeName = value;
+                _qsf.CreateQueue(value);
+            }
+        }
 
         private const string INITIAL_ASSETS_FILE = @"./Resources/InitialAssets.txt";
 
-        private static object lock1 = new object();
+        private QuoteSenderFactory _qsf = null;
 
         public AssetQuoteProducer()
         {
+            _qsf = QuoteSenderFactory.Instance;
         }
 
         /// <summary>
@@ -137,6 +155,7 @@ namespace AssetQuoteProducer
         public void Publish<Q>(Q item)
         {
             Console.WriteLine(item.ToString());
+            _qsf.SendMessage(this.ExchangeName, item.ToString());
         }
 
         public void PublishAsset(Asset asset)
