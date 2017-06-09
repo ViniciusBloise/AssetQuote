@@ -36,7 +36,6 @@ public class AsynchronousSocketListener
 
     // Thread signal.  
     private static ManualResetEvent _syncAccept = new ManualResetEvent(false);
-    private static Socket _listenerSocket = null;
 
     public AsynchronousSocketListener() {}
  
@@ -99,8 +98,7 @@ public class AsynchronousSocketListener
 
         // Create a TCP/IP socket.  
         Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        _listenerSocket = listener;
-
+ 
         // Bind the socket to the local endpoint and listen for incoming connections.  
         try
         {
@@ -117,7 +115,11 @@ public class AsynchronousSocketListener
 
                 var acceptEventArgs = new SocketAsyncEventArgs();
                 acceptEventArgs.Completed += Accept_Completed;
-                ProcessAccept(acceptEventArgs);
+                acceptEventArgs.AcceptSocket = null;
+                if (!listener.AcceptAsync(acceptEventArgs)) //operation completed synchronously
+                {
+                    Accept_Completed(null, acceptEventArgs);
+                }
 
                 // Wait until a connection is made before continuing.  
                 _syncAccept.WaitOne();
@@ -126,18 +128,6 @@ public class AsynchronousSocketListener
         catch (Exception e)
         {
             Console.WriteLine("Error while listening to the port. " + e.ToString());
-        }
-    }
-
-    private void ProcessAccept(SocketAsyncEventArgs e)
-    {
-        e.AcceptSocket = null;
-
-		var acceptEventArgs = new SocketAsyncEventArgs();
-		acceptEventArgs.Completed += Accept_Completed;
-        if (!_listenerSocket.AcceptAsync(acceptEventArgs)) //operation completed synchronously
-        {
-            Accept_Completed(null, acceptEventArgs);
         }
     }
 
@@ -177,7 +167,6 @@ public class AsynchronousSocketListener
                 ProcessReceive(readEvtArgs);
             }
         }
-        ProcessAccept(e);
     }
 
     /// <summary>
